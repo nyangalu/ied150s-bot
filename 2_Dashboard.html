@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IED150S Lecturer Dashboard — CPUT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{--blue:#185FA5;--blue-dark:#0C447C;--blue-light:#E6F1FB;--bg:#fff;--bg2:#f4f6f8;--bg3:#edf1f5;--text:#1a1a1a;--text2:#555;--text3:#888;--border:#e0e4ea;--shadow:0 2px 12px rgba(0,0,0,.08);--radius:12px}
+@media(prefers-color-scheme:dark){:root{--bg:#1a1d22;--bg2:#22262d;--bg3:#2a2f38;--text:#f0f0f0;--text2:#b0b8c8;--text3:#6b7a90;--border:#2f3540}}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg2);color:var(--text);min-height:100vh;font-size:14px}
+header{background:var(--blue);padding:0 20px;display:flex;align-items:center;gap:12px;height:56px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.logo{background:rgba(255,255,255,.2);color:#fff;font-weight:700;font-size:12px;padding:4px 10px;border-radius:7px}
+.h-title{color:#fff;font-weight:600;font-size:15px;flex:1}
+.h-badge{background:rgba(255,255,255,.15);color:#fff;font-size:11.5px;padding:3px 10px;border-radius:99px}
+.btn-hdr{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);font-size:12px;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit}
+.btn-hdr:hover{background:rgba(255,255,255,.22)}
+#refresh-time{font-size:10.5px;color:rgba(255,255,255,.5)}
+/* LOGIN */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 56px);padding:24px}
+.login-card{background:var(--bg);border:1px solid var(--border);border-radius:18px;padding:36px 32px;width:100%;max-width:380px;box-shadow:var(--shadow)}
+.login-icon{font-size:40px;text-align:center;margin-bottom:16px}
+.login-card h1{font-size:20px;font-weight:700;text-align:center;color:var(--text);margin-bottom:4px}
+.login-card p{text-align:center;color:var(--text3);font-size:13px;margin-bottom:24px}
+.field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:5px}
+.field input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:9px;background:var(--bg2);color:var(--text);font-family:inherit;font-size:14px;transition:border-color .2s;margin-bottom:14px}
+.field input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,95,165,.1)}
+.btn-login{width:100%;background:var(--blue);color:#fff;border:none;border-radius:9px;padding:12px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-login:hover{background:var(--blue-dark)}
+.login-err{display:none;background:#fff0f0;border:1px solid #fca5a5;color:#b91c1c;border-radius:7px;padding:9px 12px;font-size:13px;margin-top:10px}
+/* DASH */
+#dash{display:none;padding:20px;max-width:1280px;margin:0 auto}
+.sec{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.card{background:var(--bg);border-radius:var(--radius);padding:16px 18px;border:1px solid var(--border);box-shadow:var(--shadow)}
+.card-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);margin-bottom:5px}
+.card-value{font-size:30px;font-weight:700;color:var(--text);line-height:1}
+.card-sub{font-size:11.5px;color:var(--text3);margin-top:3px}
+.card.blue{border-top:3px solid var(--blue)}.card.green{border-top:3px solid #22c55e}
+.card.amber{border-top:3px solid #f59e0b}.card.red{border-top:3px solid #ef4444}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+@media(max-width:680px){.charts{grid-template-columns:1fr}}
+.chart-box{background:var(--bg);border-radius:var(--radius);padding:18px;border:1px solid var(--border);box-shadow:var(--shadow)}
+.chart-box h3{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:12px}
+.table-box{background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden}
+.table-toolbar{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.table-toolbar h3{font-size:14.5px;font-weight:600;color:var(--text);flex:1}
+#search{border:1.5px solid var(--border);border-radius:8px;padding:6px 11px;font-family:inherit;font-size:13px;background:var(--bg2);color:var(--text);width:190px}
+#search:focus{outline:none;border-color:var(--blue)}
+.btn-tool{background:var(--bg);border:1.5px solid var(--border);color:var(--text2);border-radius:7px;padding:6px 12px;font-family:inherit;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap}
+.btn-tool:hover{border-color:var(--blue);color:var(--blue)}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--bg2)}
+th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text3)}
+td{padding:11px 14px;font-size:13.5px;border-top:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:var(--bg2)}
+.pill{padding:2px 8px;border-radius:99px;font-size:10.5px;font-weight:600;display:inline-block}
+.pill.pos{background:#e8f5e0;color:#3b6d11}.pill.neu{background:#f1efe8;color:#5f5e5a}
+.pill.neg{background:#faeeda;color:#854f0b}.pill.inap{background:#fcebeb;color:#a32d2d}
+.pill.cur{background:#e6f1fb;color:#185fa5}.pill.conf{background:#faeeda;color:#854f0b}.pill.attn{background:#fcebeb;color:#a32d2d}
+.pill.flag{background:#fef9c3;color:#854d0e;border:1px solid #fcd34d}
+.btn-v{background:none;border:1.5px solid var(--blue);color:var(--blue);border-radius:6px;padding:3px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s,color .15s}
+.btn-v:hover{background:var(--blue);color:#fff}
+.btn-e{background:none;border:1.5px solid #ef4444;color:#ef4444;border-radius:6px;padding:3px 9px;font-size:11.5px;font-weight:600;font-family:inherit;text-decoration:none;display:inline-block;transition:background .15s,color .15s}
+.btn-e:hover{background:#ef4444;color:#fff}
+.no-data{padding:48px;text-align:center;color:var(--text3);font-size:13.5px;line-height:1.8}
+.loading{padding:40px;text-align:center;color:var(--text3);font-size:13.5px}
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--bg);border-radius:16px;width:100%;max-width:620px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.2)}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.modal-head h3{font-size:15px;font-weight:600;flex:1}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3);padding:2px 5px;line-height:1}
+.modal-body{flex:1;overflow-y:auto;padding:14px 20px;display:flex;flex-direction:column;gap:9px}
+.cm{padding:9px 13px;border-radius:10px;font-size:13px;line-height:1.6;max-width:88%}
+.cm.user{background:var(--blue);color:#fff;align-self:flex-end;border-radius:10px 10px 2px 10px}
+.cm.bot{background:var(--bg2);color:var(--text);align-self:flex-start;border:1px solid var(--border);border-radius:2px 10px 10px 10px}
+.cm-meta{font-size:10px;margin-top:4px;opacity:.65}
+/* Translation panel */
+.cm-translation{
+  margin-top:7px;padding:8px 11px;background:#fffbeb;
+  border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;
+  font-size:12.5px;color:#78350f;line-height:1.55
+}
+.cm-translation .tr-label{font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.4px;color:#b45309;margin-bottom:3px;display:flex;align-items:center;gap:4px}
+.tr-spinner{display:inline-block;width:10px;height:10px;border:1.5px solid #f59e0b;
+  border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header>
+  <span class="logo">IED150S</span>
+  <span class="h-title">Lecturer Dashboard</span>
+  <span id="refresh-time"></span>
+  <span class="h-badge" id="h-badge" style="display:none">Mr. L Nyanga</span>
+  <button class="btn-hdr" id="logout-btn" style="display:none" onclick="doLogout()">Sign out</button>
+</header>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-icon">📊</div>
+    <h1>Lecturer Dashboard</h1>
+    <p>IED150S · Industrial Engineering Design · CPUT 2026</p>
+    <div class="field">
+      <label>Access Code</label>
+      <input type="password" id="code" placeholder="Enter access code" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Access Dashboard</button>
+    <div class="login-err" id="login-err">Incorrect access code.</div>
+  </div>
+</div>
+
+<div id="dash">
+  <p class="sec">Overview</p>
+  <div class="cards">
+    <div class="card blue"><div class="card-label">Students</div><div class="card-value" id="c-s">—</div><div class="card-sub">registered</div></div>
+    <div class="card"><div class="card-label">Messages</div><div class="card-value" id="c-m">—</div><div class="card-sub">total</div></div>
+    <div class="card green"><div class="card-label">Positive</div><div class="card-value" id="c-p">—</div><div class="card-sub">sentiment</div></div>
+    <div class="card"><div class="card-label">Curious</div><div class="card-value" id="c-cu">—</div><div class="card-sub">learning state</div></div>
+    <div class="card red"><div class="card-label">Flagged</div><div class="card-value" id="c-f">—</div><div class="card-sub">need attention</div></div>
+    <div class="card amber"><div class="card-label">Active Today</div><div class="card-value" id="c-t">—</div><div class="card-sub">students</div></div>
+  </div>
+  <div class="charts">
+    <div class="chart-box"><h3>Sentiment Distribution</h3><canvas id="sc" height="200"></canvas></div>
+    <div class="chart-box"><h3>Learning State Distribution</h3><canvas id="lc" height="200"></canvas></div>
+  </div>
+  <div class="table-box">
+    <div class="table-toolbar">
+      <h3>Student Activity</h3>
+      <input type="text" id="search" placeholder="Search…" oninput="renderTable()">
+      <button class="btn-tool" onclick="doRefresh()">↻ Refresh</button>
+      <button class="btn-tool" onclick="exportCSV()">⬇ CSV</button>
+    </div>
+    <div id="tw"><div class="loading">Fetching data from Google Sheets…</div></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="maybeClose(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">Conversation</h3>
+      <button id="tr-toggle" class="btn-tool" style="font-size:12px;padding:5px 10px;display:none" onclick="toggleTranslations()">🌐 Show English</button>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+//  EDIT THIS LINE with your Google Apps Script URL
+const SCRIPT_URL = 'https://script.google.com/macros/s/REPLACE_WITH_YOUR_DEPLOYMENT_ID/exec';
+// ════════════════════════════════════════════
+
+const CODES = ['IED150S','ied150s','nyangal'];
+const LECT  = 'nyangal@cput.ac.za';
+let allData = {}, refreshTimer = null;
+
+async function apiGet(params) {
+  try {
+    const res = await fetch(SCRIPT_URL + '?' + new URLSearchParams(params), { redirect:'follow' });
+    return await res.json();
+  } catch { return null; }
+}
+
+function doLogin() {
+  const v = document.getElementById('code').value.trim();
+  if (CODES.includes(v)) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+    document.getElementById('h-badge').style.display = 'inline-block';
+    document.getElementById('logout-btn').style.display = 'inline-block';
+    doRefresh();
+    refreshTimer = setInterval(doRefresh, 60000);
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+function doLogout() {
+  if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('dash').style.display = 'none';
+  document.getElementById('h-badge').style.display = 'none';
+  document.getElementById('logout-btn').style.display = 'none';
+  document.getElementById('code').value = '';
+  document.getElementById('login-err').style.display = 'none';
+  allData = {};
+}
+
+async function doRefresh() {
+  document.getElementById('tw').innerHTML = '<div class="loading">Fetching from Google Sheets…</div>';
+  const result = await apiGet({ action: 'analytics' });
+  if (!result?.data) {
+    document.getElementById('tw').innerHTML = '<div class="no-data">Could not connect to Google Apps Script.<br>Ensure <strong>SCRIPT_URL</strong> is correct in both HTML files<br>and the script is deployed for <em>Anyone</em>.</div>';
+    return;
+  }
+  allData = {};
+  result.data.forEach(s => { if (s.studentNumber) allData[s.studentNumber] = s; });
+  updateCards(); updateCharts(); renderTable();
+  document.getElementById('refresh-time').textContent = 'Updated ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+
+function updateCards() {
+  const students = Object.values(allData);
+  const today = new Date().toDateString();
+  let msgs=0,pos=0,cur=0,flag=0,act=0;
+  students.forEach(s=>{msgs+=s.messageCount||0;pos+=s.sentiments?.positive||0;cur+=s.learningStates?.curious||0;if(s.flagged)flag++;if(s.lastMessage&&new Date(s.lastMessage).toDateString()===today)act++;});
+  document.getElementById('c-s').textContent=students.length;
+  document.getElementById('c-m').textContent=msgs;
+  document.getElementById('c-p').textContent=pos;
+  document.getElementById('c-cu').textContent=cur;
+  document.getElementById('c-f').textContent=flag;
+  document.getElementById('c-t').textContent=act;
+}
+
+let sci,lci;
+function updateCharts() {
+  const students = Object.values(allData);
+  const sent={positive:0,neutral:0,negative:0,inappropriate:0};
+  const learn={curious:0,neutral:0,confused:0,attention_needed:0};
+  students.forEach(s=>{Object.keys(sent).forEach(k=>{sent[k]+=s.sentiments?.[k]||0;});Object.keys(learn).forEach(k=>{learn[k]+=s.learningStates?.[k]||0;});});
+  const blue='#185FA5', opts={plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false}}},responsive:true};
+  if(sci)sci.destroy();
+  sci=new Chart(document.getElementById('sc').getContext('2d'),{type:'bar',data:{labels:['Positive','Neutral','Negative','Inappropriate'],datasets:[{data:Object.values(sent),backgroundColor:['#3b6d11','#9ca3af','#854f0b','#a32d2d'],borderRadius:5,borderSkipped:false}]},options:opts});
+  if(lci)lci.destroy();
+  lci=new Chart(document.getElementById('lc').getContext('2d'),{type:'bar',data:{labels:['Curious','Neutral','Confused','Needs Attn'],datasets:[{data:Object.values(learn),backgroundColor:[blue,'#9ca3af','#854f0b','#a32d2d'],borderRadius:5,borderSkipped:false}]},options:opts});
+}
+
+function renderTable() {
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  const students=Object.values(allData).filter(s=>!q||s.name?.toLowerCase().includes(q)||s.studentNumber?.toLowerCase().includes(q));
+  const tw=document.getElementById('tw');
+  if(!students.length){tw.innerHTML='<div class="no-data">No student data yet.<br>Students must complete at least one chat in the Student Bot.</div>';return;}
+  const dom=obj=>Object.entries(obj||{}).sort((a,b)=>b[1]-a[1])[0]?.[0]||'neutral';
+  const sc={positive:'pos',neutral:'neu',negative:'neg',inappropriate:'inap'};
+  const lc={curious:'cur',neutral:'neu',confused:'conf',attention_needed:'attn'};
+  const fmt=iso=>iso?new Date(iso).toLocaleDateString('en-ZA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+  const top=s=>{const e=Object.entries(s.topics||{}).sort((a,b)=>b[1]-a[1])[0];return e?e[0].replace(/_/g,' '):'—';};
+  let html='<table><thead><tr><th>Student</th><th>Msgs</th><th>Sentiment</th><th>Learning</th><th>Top Topic</th><th>Last Active</th><th></th></tr></thead><tbody>';
+  students.sort((a,b)=>(b.lastMessage||'').localeCompare(a.lastMessage||'')).forEach(s=>{
+    const ds=dom(s.sentiments),dl=dom(s.learningStates);
+    const subj=encodeURIComponent('[IED150S Alert] '+s.name+' — '+s.studentNumber);
+    const body=encodeURIComponent('Student: '+s.name+'\nNumber: '+s.studentNumber+'\nFlags: '+(s.flaggedReasons||[]).join('; ')+'\nMsgs: '+s.messageCount+'\nLast: '+fmt(s.lastMessage));
+    html+=`<tr>
+      <td><strong>${esc(s.name||'')}</strong><br><span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">${esc(s.studentNumber||'')}</span>${s.flagged?'&nbsp;<span class="pill flag">⚠ Flagged</span>':''}</td>
+      <td><strong>${s.messageCount||0}</strong></td>
+      <td><span class="pill ${sc[ds]||'neu'}">${ds.replace(/_/g,' ')}</span></td>
+      <td><span class="pill ${lc[dl]||'neu'}">${dl.replace(/_/g,' ')}</span></td>
+      <td style="font-size:12px">${top(s)}</td>
+      <td style="font-size:11.5px;color:var(--text3)">${fmt(s.lastMessage)}</td>
+      <td style="white-space:nowrap;display:flex;gap:5px;align-items:center">
+        <button class="btn-v" onclick="viewChat('${esc(s.studentNumber)}','${esc(s.name)}')">View</button>
+        ${s.flagged?`<a class="btn-e" href="mailto:nyangal@cput.ac.za?subject=${subj}&body=${body}">Email</a>`:''}
+      </td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  tw.innerHTML=html;
+}
+
+// ── TRANSLATION ──
+// Uses MyMemory free API — no key required, handles all languages
+let translationsOn = false, translationCache = {};
+
+async function translateText(text, fromLang) {
+  const cacheKey = fromLang + '|' + text.slice(0, 60);
+  if (translationCache[cacheKey]) return translationCache[cacheKey];
+  try {
+    const langPair = (fromLang && fromLang !== 'en') ? `${fromLang}|en` : 'auto|en';
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.slice(0, 500))}&langpair=${langPair}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const result = data.responseData?.translatedText || null;
+    if (result) translationCache[cacheKey] = result;
+    return result;
+  } catch { return null; }
+}
+
+async function toggleTranslations() {
+  translationsOn = !translationsOn;
+  const btn = document.getElementById('tr-toggle');
+  btn.textContent = translationsOn ? '🌐 Hide translations' : '🌐 Show English';
+  btn.style.background = translationsOn ? '#fef3c7' : '';
+  btn.style.borderColor = translationsOn ? '#f59e0b' : '';
+  btn.style.color = translationsOn ? '#92400e' : '';
+
+  const panels = document.querySelectorAll('.cm-translation');
+  if (!translationsOn) { panels.forEach(p => p.style.display = 'none'); return; }
+  panels.forEach(p => p.style.display = 'block');
+
+  // Translate any that haven't been translated yet
+  const pending = document.querySelectorAll('.cm-translation[data-translated="0"]');
+  for (const panel of pending) {
+    const text = panel.dataset.text;
+    const lang = panel.dataset.lang;
+    const contentDiv = panel.querySelector('.tr-content');
+    contentDiv.innerHTML = '<span class="tr-spinner"></span>';
+    const result = await translateText(text, lang);
+    contentDiv.textContent = result || '(Translation unavailable)';
+    panel.dataset.translated = '1';
+  }
+}
+
+async function viewChat(sn, name) {
+  translationsOn = false;
+  translationCache = {};
+  const body = document.getElementById('modal-body');
+  const trBtn = document.getElementById('tr-toggle');
+  document.getElementById('modal-title').textContent = name + ' (' + sn + ')';
+  trBtn.style.display = 'none';
+  trBtn.textContent = '🌐 Show English';
+  trBtn.style.background = '';
+  trBtn.style.borderColor = '';
+  trBtn.style.color = '';
+  body.innerHTML = '<p style="color:var(--text3);text-align:center;padding:20px">Loading…</p>';
+  document.getElementById('overlay').classList.add('open');
+
+  const result = await apiGet({ action: 'chat', sn });
+  const msgs = result?.messages || [];
+
+  if (!msgs.length) {
+    body.innerHTML = '<p style="color:var(--text3);font-size:13.5px;text-align:center;padding:20px">No messages recorded yet.</p>';
+    return;
+  }
+
+  const stc = {positive:'#3b6d11',neutral:'#5f5e5a',negative:'#854f0b',inappropriate:'#a32d2d'};
+  const langNames = {xh:'isiXhosa',zu:'isiZulu',af:'Afrikaans',st:'Sesotho',tn:'Setswana',
+    ts:'Xitsonga',ve:'Tshivenda',ss:'siSwati',nr:'isiNdebele',nso:'Sepedi',
+    fr:'French',pt:'Portuguese',ar:'Arabic',zh:'Chinese',hi:'Hindi',es:'Spanish'};
+
+  let hasNonEnglish = false;
+
+  body.innerHTML = msgs.map((m, i) => {
+    const u = m.role === 'user';
+    const lang = m.language || 'en';
+    const isNonEn = lang !== 'en';
+    if (isNonEn) hasNonEnglish = true;
+
+    const langBadge = isNonEn
+      ? `<span style="background:#f0e6fb;color:#6b21a8;padding:1px 6px;border-radius:99px;font-size:10px;font-weight:600;margin-left:4px">🌐 ${langNames[lang] || lang.toUpperCase()}</span>` : '';
+
+    const meta = !u && m.sentiment
+      ? `<div class="cm-meta" style="color:${stc[m.sentiment]||'#5f5e5a'}">${m.sentiment||''} · ${(m.learningState||'').replace(/_/g,' ')}${m.topic?' · '+m.topic.replace(/_/g,' '):''}${langBadge}</div>` : '';
+
+    // Translation panel — rendered but hidden; shown when toggle is clicked
+    const trPanel = isNonEn
+      ? `<div class="cm-translation" data-text="${esc(m.content||'')}" data-lang="${lang}" data-translated="0" style="display:none">
+           <div class="tr-label">🇬🇧 English translation</div>
+           <div class="tr-content" style="color:#78350f;font-style:italic"></div>
+         </div>` : '';
+
+    return `<div class="cm ${u?'user':'bot'}">${esc(m.content||'')}${meta}${trPanel}</div>`;
+  }).join('');
+
+  // Show translate button only if there are non-English messages
+  if (hasNonEnglish) trBtn.style.display = 'inline-block';
+}
+
+function closeModal(){document.getElementById('overlay').classList.remove('open');}
+function maybeClose(e){if(e.target.id==='overlay')closeModal();}
+function esc(s){return(s+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function exportCSV(){
+  const students=Object.values(allData);
+  if(!students.length){alert('No data to export.');return;}
+  const rows=[['Name','Student Number','Messages','Positive','Neutral','Negative','Inappropriate','Curious','Neutral_L','Confused','Needs Attention','Top Topic','Flagged','Flag Reasons','Registered','Last Active']];
+  students.forEach(s=>{
+    const t=Object.entries(s.topics||{}).sort((a,b)=>b[1]-a[1])[0]?.[0]||'';
+    rows.push([s.name||'',s.studentNumber||'',s.messageCount||0,s.sentiments?.positive||0,s.sentiments?.neutral||0,s.sentiments?.negative||0,s.sentiments?.inappropriate||0,s.learningStates?.curious||0,s.learningStates?.neutral||0,s.learningStates?.confused||0,s.learningStates?.attention_needed||0,t,s.flagged?'Yes':'No',(s.flaggedReasons||[]).join('; '),s.registeredAt||'',s.lastMessage||'']);
+  });
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='IED150S_analytics_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+</script>
+</body>
+</html>

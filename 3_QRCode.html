@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IED150S — QR Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--blue:#185FA5;--blue-dark:#0C447C}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--blue);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 20px}
+.card{background:#fff;border-radius:20px;padding:36px 40px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;gap:0}
+.card-top{display:flex;flex-direction:column;align-items:center;margin-bottom:24px;text-align:center}
+.logo-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.logo-emoji{font-size:36px}
+.logo-badge{background:var(--blue);color:#fff;font-weight:700;font-size:14px;padding:5px 12px;border-radius:9px}
+h1{font-size:21px;font-weight:700;color:#1a1a1a;margin-bottom:4px}
+.sub{font-size:13px;color:#888;line-height:1.5}
+#qr-area{width:220px;height:220px;border:2.5px solid var(--blue);border-radius:14px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff;margin-bottom:18px;flex-shrink:0}
+#qr-area canvas,#qr-area img{border-radius:10px}
+.qr-placeholder{display:flex;flex-direction:column;align-items:center;gap:8px;color:#ccc;font-size:12.5px;text-align:center;padding:20px}
+.chips-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:18px}
+.info-chip{background:#f4f6f8;border:1px solid #e0e4ea;border-radius:99px;padding:4px 11px;font-size:12px;color:#555}
+.info-chip strong{color:var(--blue)}
+.url-section{width:100%;margin-bottom:14px}
+.url-section label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#555;margin-bottom:5px}
+.url-row{display:flex;gap:8px}
+#url-input{flex:1;border:1.5px solid #e0e4ea;border-radius:9px;padding:9px 12px;font-family:'DM Mono',monospace;font-size:12px;color:#1a1a1a;background:#f4f6f8;transition:border-color .2s}
+#url-input:focus{outline:none;border-color:var(--blue)}
+.btn-gen{background:var(--blue);color:#fff;border:none;border-radius:9px;padding:9px 16px;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s}
+.btn-gen:hover{background:var(--blue-dark)}
+.steps{width:100%;background:#f4f6f8;border-radius:10px;border:1px solid #e0e4ea;padding:14px 16px;margin-bottom:18px}
+.steps-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;margin-bottom:8px}
+.step{display:flex;gap:9px;align-items:flex-start;margin-bottom:7px;font-size:12.5px;color:#333;line-height:1.5}
+.step:last-child{margin-bottom:0}
+.step-num{background:var(--blue);color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.action-row{display:flex;gap:10px;width:100%}
+.btn-print,.btn-copy{flex:1;border-radius:9px;padding:11px;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;border:none;transition:background .15s}
+.btn-print{background:#1a1a1a;color:#fff}
+.btn-print:hover{background:#333}
+.btn-copy{background:var(--blue);color:#fff}
+.btn-copy:hover{background:var(--blue-dark)}
+.btn-print:disabled,.btn-copy:disabled{opacity:.4;cursor:default}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:99px;font-size:13px;transition:transform .3s;pointer-events:none;z-index:99}
+.toast.show{transform:translateX(-50%) translateY(0)}
+@media print{body{background:#fff}.card{box-shadow:none;border-radius:0;padding:30px;max-width:100%}.url-section,.action-row{display:none}.qr-area{width:250px;height:250px}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="card-top">
+    <div class="logo-row">
+      <span class="logo-emoji">🎓</span>
+      <span class="logo-badge">IED150S</span>
+    </div>
+    <h1>IED150S Study Assistant</h1>
+    <p class="sub">Industrial Engineering Design · CPUT 2026<br>Scan to access the student learning bot</p>
+  </div>
+
+  <div id="qr-area">
+    <div class="qr-placeholder">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><circle cx="17.5" cy="17.5" r="2"/>
+      </svg>
+      <span>Enter URL below</span>
+    </div>
+  </div>
+
+  <div class="chips-row">
+    <span class="info-chip">📐 <strong>IED150S</strong></span>
+    <span class="info-chip">🎓 CPUT <strong>2026</strong></span>
+    <span class="info-chip">👨‍🏫 Mr <strong>L Nyanga</strong></span>
+  </div>
+
+  <div class="url-section">
+    <label>Student Bot URL</label>
+    <div class="url-row">
+      <input type="text" id="url-input" placeholder="https://your-site.github.io/repo/1_StudentBot.html" oninput="onUrlChange()">
+      <button class="btn-gen" onclick="generateQR()">Generate</button>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="steps-title">How to use</div>
+    <div class="step"><div class="step-num">1</div><span>Scan the QR code with your smartphone camera</span></div>
+    <div class="step"><div class="step-num">2</div><span>Enter your <strong>name</strong>, <strong>student number</strong> and <strong>API key</strong> on first use</span></div>
+    <div class="step"><div class="step-num">3</div><span>Your session is saved — tap <em>Resume my session</em> next time</span></div>
+    <div class="step"><div class="step-num">4</div><span>Select a topic and ask any IED150S question — the bot guides you</span></div>
+  </div>
+
+  <div class="action-row">
+    <button class="btn-print" id="btn-print" onclick="window.print()" disabled>🖨 Print / PDF</button>
+    <button class="btn-copy" id="btn-copy" onclick="copyUrl()" disabled>📋 Copy URL</button>
+  </div>
+</div>
+<div class="toast" id="toast">✓ URL copied</div>
+
+<script>
+let currentUrl = '', qrInst = null;
+
+function onUrlChange() {
+  const v = document.getElementById('url-input').value.trim();
+  if (v.startsWith('http')) generateQR();
+}
+
+function generateQR() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) { alert('Please enter the URL of 1_StudentBot.html'); return; }
+  currentUrl = url;
+  const area = document.getElementById('qr-area');
+  area.innerHTML = '';
+  try {
+    qrInst = new QRCode(area, { text:url, width:208, height:208, colorDark:'#185FA5', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.M });
+  } catch {
+    area.innerHTML = '<div class="qr-placeholder" style="color:#b91c1c">Failed to generate.<br>Check the URL.</div>';
+    return;
+  }
+  document.getElementById('btn-print').disabled = false;
+  document.getElementById('btn-copy').disabled = false;
+}
+
+function copyUrl() {
+  if (!currentUrl) return;
+  navigator.clipboard.writeText(currentUrl).then(() => {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  });
+}
+
+window.addEventListener('load', () => {
+  const base = window.location.href.replace(/[^/]*$/, '');
+  const hint = base + '1_StudentBot.html';
+  if (!hint.startsWith('file://')) {
+    document.getElementById('url-input').value = hint;
+    generateQR();
+  }
+});
+</script>
+</body>
+</html>
