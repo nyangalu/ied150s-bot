@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IED150S Lecturer Dashboard — CPUT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{--blue:#185FA5;--blue-dark:#0C447C;--blue-light:#E6F1FB;--bg:#fff;--bg2:#f4f6f8;--bg3:#edf1f5;--text:#1a1a1a;--text2:#555;--text3:#888;--border:#e0e4ea;--shadow:0 2px 12px rgba(0,0,0,.08);--radius:12px}
+@media(prefers-color-scheme:dark){:root{--bg:#1a1d22;--bg2:#22262d;--bg3:#2a2f38;--text:#f0f0f0;--text2:#b0b8c8;--text3:#6b7a90;--border:#2f3540}}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg2);color:var(--text);min-height:100vh;font-size:14px}
+header{background:var(--blue);padding:0 20px;display:flex;align-items:center;gap:12px;height:56px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.logo{background:rgba(255,255,255,.2);color:#fff;font-weight:700;font-size:12px;padding:4px 10px;border-radius:7px}
+.h-title{color:#fff;font-weight:600;font-size:15px;flex:1}
+.h-badge{background:rgba(255,255,255,.15);color:#fff;font-size:11.5px;padding:3px 10px;border-radius:99px}
+.btn-hdr{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);font-size:12px;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit}
+.btn-hdr:hover{background:rgba(255,255,255,.22)}
+#refresh-time{font-size:10.5px;color:rgba(255,255,255,.5)}
+/* LOGIN */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 56px);padding:24px}
+.login-card{background:var(--bg);border:1px solid var(--border);border-radius:18px;padding:36px 32px;width:100%;max-width:380px;box-shadow:var(--shadow)}
+.login-icon{font-size:40px;text-align:center;margin-bottom:16px}
+.login-card h1{font-size:20px;font-weight:700;text-align:center;color:var(--text);margin-bottom:4px}
+.login-card p{text-align:center;color:var(--text3);font-size:13px;margin-bottom:24px}
+.field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:5px}
+.field input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:9px;background:var(--bg2);color:var(--text);font-family:inherit;font-size:14px;transition:border-color .2s;margin-bottom:14px}
+.field input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,95,165,.1)}
+.btn-login{width:100%;background:var(--blue);color:#fff;border:none;border-radius:9px;padding:12px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-login:hover{background:var(--blue-dark)}
+.login-err{display:none;background:#fff0f0;border:1px solid #fca5a5;color:#b91c1c;border-radius:7px;padding:9px 12px;font-size:13px;margin-top:10px}
+/* DASH */
+#dash{display:none;padding:20px;max-width:1280px;margin:0 auto}
+.sec{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.card{background:var(--bg);border-radius:var(--radius);padding:16px 18px;border:1px solid var(--border);box-shadow:var(--shadow)}
+.card-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);margin-bottom:5px}
+.card-value{font-size:30px;font-weight:700;color:var(--text);line-height:1}
+.card-sub{font-size:11.5px;color:var(--text3);margin-top:3px}
+.card.blue{border-top:3px solid var(--blue)}.card.green{border-top:3px solid #22c55e}
+.card.amber{border-top:3px solid #f59e0b}.card.red{border-top:3px solid #ef4444}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+@media(max-width:680px){.charts{grid-template-columns:1fr}}
+.chart-box{background:var(--bg);border-radius:var(--radius);padding:18px;border:1px solid var(--border);box-shadow:var(--shadow)}
+.chart-box h3{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:12px}
+.table-box{background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden}
+.table-toolbar{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.table-toolbar h3{font-size:14.5px;font-weight:600;color:var(--text);flex:1}
+#search{border:1.5px solid var(--border);border-radius:8px;padding:6px 11px;font-family:inherit;font-size:13px;background:var(--bg2);color:var(--text);width:190px}
+#search:focus{outline:none;border-color:var(--blue)}
+.btn-tool{background:var(--bg);border:1.5px solid var(--border);color:var(--text2);border-radius:7px;padding:6px 12px;font-family:inherit;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap}
+.btn-tool:hover{border-color:var(--blue);color:var(--blue)}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--bg2)}
+th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text3)}
+td{padding:11px 14px;font-size:13.5px;border-top:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:var(--bg2)}
+.pill{padding:2px 8px;border-radius:99px;font-size:10.5px;font-weight:600;display:inline-block}
+.pill.pos{background:#e8f5e0;color:#3b6d11}.pill.neu{background:#f1efe8;color:#5f5e5a}
+.pill.neg{background:#faeeda;color:#854f0b}.pill.inap{background:#fcebeb;color:#a32d2d}
+.pill.cur{background:#e6f1fb;color:#185fa5}.pill.conf{background:#faeeda;color:#854f0b}.pill.attn{background:#fcebeb;color:#a32d2d}
+.pill.flag{background:#fef9c3;color:#854d0e;border:1px solid #fcd34d}
+.btn-v{background:none;border:1.5px solid var(--blue);color:var(--blue);border-radius:6px;padding:3px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s,color .15s}
+.btn-v:hover{background:var(--blue);color:#fff}
+.btn-e{background:none;border:1.5px solid #ef4444;color:#ef4444;border-radius:6px;padding:3px 9px;font-size:11.5px;font-weight:600;font-family:inherit;text-decoration:none;display:inline-block;transition:background .15s,color .15s}
+.btn-e:hover{background:#ef4444;color:#fff}
+.no-data{padding:48px;text-align:center;color:var(--text3);font-size:13.5px;line-height:1.8}
+.loading{padding:40px;text-align:center;color:var(--text3);font-size:13.5px}
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--bg);border-radius:16px;width:100%;max-width:620px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.2)}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.modal-head h3{font-size:15px;font-weight:600;flex:1}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3);padding:2px 5px;line-height:1}
+.modal-body{flex:1;overflow-y:auto;padding:14px 20px;display:flex;flex-direction:column;gap:9px}
+.cm{padding:9px 13px;border-radius:10px;font-size:13px;line-height:1.6;max-width:88%}
+.cm.user{background:var(--blue);color:#fff;align-self:flex-end;border-radius:10px 10px 2px 10px}
+.cm.bot{background:var(--bg2);color:var(--text);align-self:flex-start;border:1px solid var(--border);border-radius:2px 10px 10px 10px}
+.cm-meta{font-size:10px;margin-top:4px;opacity:.65}
+/* Knowledge Base */
+.kb-drop{border:2px dashed var(--border);border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:10px}
+.kb-mtab{background:none;border:none;border-bottom:2.5px solid transparent;color:var(--text2);font-size:12.5px;font-weight:500;padding:8px 14px;cursor:pointer;font-family:inherit;transition:color .15s,border-color .15s}
+.kb-mtab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}
+.kb-drop:hover,.kb-drop.drag-over{border-color:var(--blue);background:var(--blue-light)}
+.kb-drop-icon{font-size:32px;margin-bottom:8px}
+.kb-drop p{font-size:13px;color:var(--text2);margin:0}
+.kb-drop small{font-size:11.5px;color:var(--text3)}
+#kb-file-input{display:none}
+.kb-list{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto}
+.kb-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px}
+.kb-item-icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.kb-item-body{flex:1;min-width:0}
+.kb-item-name{font-size:13.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kb-item-meta{font-size:11.5px;color:var(--text3);margin-top:2px}
+.kb-item-preview{font-size:12px;color:var(--text2);margin-top:5px;line-height:1.5;max-height:52px;overflow:hidden;white-space:pre-wrap;word-break:break-word}
+.kb-item-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.kb-toggle{font-size:11.5px;padding:3px 9px;border-radius:99px;border:1.5px solid;cursor:pointer;font-family:inherit;font-weight:600;transition:background .15s,color .15s}
+.kb-toggle.active{background:#e8f5e0;color:#3b6d11;border-color:#86efac}
+.kb-toggle.active:hover{background:#dcfce7}
+.kb-toggle.inactive{background:#f1efe8;color:#5f5e5a;border-color:var(--border)}
+.kb-toggle.inactive:hover{background:#e5e0d8}
+.kb-del{background:none;border:none;font-size:15px;color:var(--text3);cursor:pointer;padding:3px 6px;border-radius:6px;transition:color .15s,background .15s}
+.kb-del:hover{color:#ef4444;background:#fcebeb}
+.kb-empty{text-align:center;padding:32px 20px;color:var(--text3);font-size:13px}
+.kb-stats{font-size:12px;color:var(--text3);margin-top:10px;text-align:right}
+.kb-paste-area{width:100%;height:100px;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-family:inherit;font-size:13px;resize:vertical;color:var(--text);background:var(--bg2)}
+.kb-paste-area:focus{outline:none;border-color:var(--blue)}
+.kb-paste-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:14px}
+.kb-paste-row .field{flex:1;margin-bottom:0}
+.kb-progress{height:3px;background:var(--blue-light);border-radius:99px;margin-bottom:10px;overflow:hidden;display:none}
+.kb-progress-bar{height:100%;background:var(--blue);border-radius:99px;transition:width .3s;width:0%}
+.admin-box{background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden}
+.admin-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.admin-head h3{font-size:14.5px;font-weight:600;color:var(--text);flex:1}
+.admin-head .admin-ico{font-size:16px}
+.admin-toggle{font-size:12px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:inherit}
+.admin-body{padding:16px;display:none}
+.admin-body.open{display:block}
+.admin-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px}
+.admin-tab{background:none;border:none;border-bottom:2.5px solid transparent;color:var(--text2);font-size:12.5px;font-weight:500;padding:8px 14px;cursor:pointer;font-family:inherit;transition:color .15s,border-color .15s}
+.admin-tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}
+.admin-tab-panel{display:none}.admin-tab-panel.active{display:block}
+/* Add/edit form */
+.admin-form{display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:end;margin-bottom:12px}
+@media(max-width:640px){.admin-form{grid-template-columns:1fr 1fr}}
+.admin-form .field{margin-bottom:0}
+.admin-form .field label{margin-bottom:4px}
+.admin-form .field input,.admin-form .field select{
+  padding:8px 11px;border:1.5px solid var(--border);border-radius:8px;
+  font-family:inherit;font-size:13px;background:var(--bg2);color:var(--text);width:100%
+}
+.admin-form .field input:focus,.admin-form .field select:focus{outline:none;border-color:var(--blue)}
+.btn-admin{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:9px 16px;
+  font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;height:38px}
+.btn-admin:hover{background:var(--blue-dark)}
+.btn-admin.danger{background:#ef4444}.btn-admin.danger:hover{background:#dc2626}
+.btn-admin.secondary{background:var(--bg3);color:var(--text);border:1.5px solid var(--border)}
+.btn-admin.secondary:hover{border-color:var(--blue);color:var(--blue)}
+/* Admin student list */
+.admin-list{max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
+.admin-list table{width:100%;border-collapse:collapse}
+.admin-list th{padding:8px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);background:var(--bg2);text-align:left;position:sticky;top:0}
+.admin-list td{padding:9px 12px;font-size:13px;border-top:1px solid var(--border)}
+.admin-list tr:hover td{background:var(--bg2)}
+.pill.reg{background:#e8f5e0;color:#3b6d11}.pill.not-reg{background:#fcebeb;color:#a32d2d}
+.admin-search{width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:8px;
+  font-family:inherit;font-size:13px;background:var(--bg2);color:var(--text);margin-bottom:10px}
+.admin-search:focus{outline:none;border-color:var(--blue)}
+.admin-msg{padding:8px 12px;border-radius:7px;font-size:12.5px;margin-bottom:10px;display:none}
+.admin-msg.ok{background:#e8f5e0;color:#3b6d11;border:1px solid #86efac}
+.admin-msg.err{background:#fcebeb;color:#a32d2d;border:1px solid #fca5a5}
+.insights{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+@media(max-width:900px){.insights{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.insights{grid-template-columns:1fr}}
+.insight-box{background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
+.insight-head{padding:12px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.insight-head h4{font-size:13px;font-weight:700;flex:1}
+.insight-head .ico{font-size:16px}
+.insight-head.freq{background:#edf4ff;border-bottom-color:#bfdbfe}
+.insight-head.freq h4{color:#1e40af}
+.insight-head.struggle{background:#fff5f5;border-bottom-color:#fecaca}
+.insight-head.struggle h4{color:#991b1b}
+.insight-head.good{background:#f0fdf4;border-bottom-color:#bbf7d0}
+.insight-head.good h4{color:#166534}
+.insight-body{padding:12px 16px;display:flex;flex-direction:column;gap:6px;min-height:120px}
+.topic-row{display:flex;align-items:center;gap:8px}
+.topic-name{font-size:13px;color:var(--text);flex:1;font-weight:500}
+.topic-bar-wrap{width:90px;height:7px;background:var(--bg3);border-radius:99px;overflow:hidden;flex-shrink:0}
+.topic-bar-fill{height:100%;border-radius:99px;transition:width .4s}
+.topic-bar-fill.freq{background:#3b82f6}
+.topic-bar-fill.struggle{background:#ef4444}
+.topic-bar-fill.good{background:#22c55e}
+.topic-count{font-size:11.5px;color:var(--text3);flex-shrink:0;min-width:26px;text-align:right}
+.insight-empty{font-size:13px;color:var(--text3);text-align:center;padding:20px 0;font-style:italic}
+.insight-sub{font-size:10.5px;color:var(--text3);margin-top:2px;padding:0 16px 10px}
+  margin-top:7px;padding:8px 11px;background:#fffbeb;
+  border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;
+  font-size:12.5px;color:#78350f;line-height:1.55
+}
+.cm-translation .tr-label{font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.4px;color:#b45309;margin-bottom:3px;display:flex;align-items:center;gap:4px}
+.tr-spinner{display:inline-block;width:10px;height:10px;border:1.5px solid #f59e0b;
+  border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header>
+  <span class="logo">IED150S</span>
+  <span class="h-title">Lecturer Dashboard</span>
+  <span id="refresh-time"></span>
+  <span class="h-badge" id="h-badge" style="display:none">Mr. L Nyanga</span>
+  <button class="btn-hdr" id="logout-btn" style="display:none" onclick="doLogout()">Sign out</button>
+</header>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-icon">📊</div>
+    <h1>Lecturer Dashboard</h1>
+    <p>IED150S · Industrial Engineering Design · CPUT 2026</p>
+    <div class="field">
+      <label>Access Code</label>
+      <input type="password" id="code" placeholder="Enter access code" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Access Dashboard</button>
+    <div class="login-err" id="login-err">Incorrect access code.</div>
+  </div>
+</div>
+
+<div id="dash">
+  <p class="sec">Overview</p>
+  <div class="cards">
+    <div class="card blue"><div class="card-label">Students</div><div class="card-value" id="c-s">—</div><div class="card-sub">registered</div></div>
+    <div class="card"><div class="card-label">Messages</div><div class="card-value" id="c-m">—</div><div class="card-sub">total</div></div>
+    <div class="card green"><div class="card-label">Positive</div><div class="card-value" id="c-p">—</div><div class="card-sub">sentiment</div></div>
+    <div class="card"><div class="card-label">Curious</div><div class="card-value" id="c-cu">—</div><div class="card-sub">learning state</div></div>
+    <div class="card red"><div class="card-label">Flagged</div><div class="card-value" id="c-f">—</div><div class="card-sub">need attention</div></div>
+    <div class="card amber"><div class="card-label">Active Today</div><div class="card-value" id="c-t">—</div><div class="card-sub">students</div></div>
+  </div>
+
+  <p class="sec">Topic Insights</p>
+  <div class="insights">
+    <div class="insight-box">
+      <div class="insight-head freq"><span class="ico">🔥</span><h4>Most Discussed Topics</h4></div>
+      <div class="insight-body" id="ins-freq"><div class="insight-empty">No data yet</div></div>
+      <div class="insight-sub">Topics students ask about most frequently</div>
+    </div>
+    <div class="insight-box">
+      <div class="insight-head struggle"><span class="ico">⚠️</span><h4>Students Are Struggling</h4></div>
+      <div class="insight-body" id="ins-struggle"><div class="insight-empty">No data yet</div></div>
+      <div class="insight-sub">High confusion or attention-needed rate per topic</div>
+    </div>
+    <div class="insight-box">
+      <div class="insight-head good"><span class="ico">✅</span><h4>Good Comprehension</h4></div>
+      <div class="insight-body" id="ins-good"><div class="insight-empty">No data yet</div></div>
+      <div class="insight-sub">Positive sentiment and curious learning state per topic</div>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="chart-box"><h3>Sentiment Distribution</h3><canvas id="sc" height="200"></canvas></div>
+    <div class="chart-box"><h3>Learning State Distribution</h3><canvas id="lc" height="200"></canvas></div>
+  </div>
+  <div class="table-box">
+    <div class="table-toolbar">
+      <h3>Student Activity</h3>
+      <input type="text" id="search" placeholder="Search…" oninput="renderTable()">
+      <button class="btn-tool" onclick="doRefresh()">↻ Refresh</button>
+      <button class="btn-tool" onclick="exportCSV()">⬇ CSV</button>
+    </div>
+    <div id="tw"><div class="loading">Fetching data from Google Sheets…</div></div>
+  </div>
+
+  <!-- ══ ADMIN SECTION ══ -->
+  <div class="admin-box">
+    <div class="admin-head" onclick="toggleAdmin()">
+      <span class="admin-ico">⚙️</span>
+      <h3>Student Registry — Admin</h3>
+      <button class="admin-toggle" id="admin-toggle-btn">▼ Show</button>
+    </div>
+    <div class="admin-body" id="admin-body">
+      <div class="admin-msg" id="admin-msg"></div>
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="switchAdminTab('add',this)">➕ Add Student</button>
+        <button class="admin-tab" onclick="switchAdminTab('manage',this)">📋 Manage List</button>
+      </div>
+
+      <!-- ADD TAB -->
+      <div class="admin-tab-panel active" id="atab-add">
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Add a student not on the original class list, or re-activate a removed student.</p>
+        <div class="admin-form">
+          <div class="field">
+            <label>Student Number</label>
+            <input type="text" id="adm-sn" placeholder="e.g. 220099999">
+          </div>
+          <div class="field">
+            <label>Full Name (SURNAME Initial)</label>
+            <input type="text" id="adm-name" placeholder="e.g. DLAMINI S">
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select id="adm-status">
+              <option value="Registered">Registered</option>
+              <option value="Not Registered">Not Registered</option>
+            </select>
+          </div>
+          <button class="btn-admin" onclick="adminSave()" style="margin-top:0;align-self:flex-end">Save</button>
+        </div>
+      </div>
+
+      <!-- MANAGE TAB -->
+      <div class="admin-tab-panel" id="atab-manage">
+        <p style="font-size:13px;color:var(--text2);margin-bottom:10px">Edit or remove individual students. Changes apply immediately on the Student Bot.</p>
+        <input type="text" class="admin-search" id="admin-search" placeholder="Search by name or student number…" oninput="renderAdminList()">
+        <div class="admin-list" id="admin-list">
+          <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">Loading…</div>
+        </div>
+        <p style="font-size:11px;color:var(--text3);margin-top:8px">Changes are saved in the <strong>lecturer dashboard's browser</strong> and synced to the Student Bot via Google Sheets.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ KNOWLEDGE BASE ══ -->
+  <div class="admin-box" id="kb-section">
+    <div class="admin-head" onclick="toggleKbSection()">
+      <span class="admin-ico">📚</span>
+      <h3>Knowledge Base — Bot Reference Documents</h3>
+      <span style="font-size:12px;color:rgba(255,255,255,.7);background:var(--blue);padding:2px 9px;border-radius:99px;font-weight:600" id="kb-doc-count">0 docs</span>
+      <button class="admin-toggle" id="kb-section-btn">▼ Show</button>
+    </div>
+    <div class="admin-body" id="kb-section-body">
+
+      <p style="font-size:13px;color:var(--text2);margin-bottom:16px">
+        Upload documents, paste notes, or link files. The bot uses these as additional reference material when answering students.
+        Documents are <strong>topic-tagged</strong> — only the relevant topic's documents are sent to the bot per conversation.
+        For the full resource folder, save a OneDrive link below so students get a <strong>📂 Resources</strong> button in the chat.
+      </p>
+
+      <!-- OneDrive Folder Link -->
+      <div style="background:var(--blue-light);border:1.5px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin-bottom:18px">
+        <div style="font-size:13px;font-weight:700;color:#1e40af;margin-bottom:8px">📁 Full Resource Folder Link <span style="font-size:11.5px;font-weight:400;color:#3b82f6">— students get a "📂 Resources" button in the chat</span></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="kb-onedrive-url" placeholder="https://1drv.ms/... or https://cput-my.sharepoint.com/..."
+            style="flex:1;padding:9px 13px;border:1.5px solid #93c5fd;border-radius:8px;font-family:inherit;font-size:13px;background:#fff;color:var(--text)">
+          <button class="btn-admin" onclick="kbSaveOneDriveLink()" style="white-space:nowrap">Save Link</button>
+        </div>
+        <p style="font-size:11.5px;color:#3b82f6;margin-top:6px">Set the folder sharing to <strong>"Anyone with the link can view"</strong> in OneDrive before saving.</p>
+      </div>
+
+      <!-- Add documents: 3 methods -->
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:10px">Add Documents for the Bot to Reference</div>
+
+      <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px" id="kb-method-tabs">
+        <button class="kb-mtab active" onclick="kbSetMethod('file',this)">📄 Upload File</button>
+        <button class="kb-mtab" onclick="kbSetMethod('url',this)">🔗 Link a File</button>
+        <button class="kb-mtab" onclick="kbSetMethod('paste',this)">📝 Paste Text</button>
+      </div>
+
+      <!-- FILE UPLOAD -->
+      <div id="kb-m-file">
+        <div class="kb-drop" id="kb-drop"
+          onclick="document.getElementById('kb-file-input').click()"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="kbHandleDrop(event)">
+          <div class="kb-drop-icon">📄</div>
+          <p><strong>Click to upload</strong> or drag and drop a file here</p>
+          <small>PDF · TXT · MD — text is extracted and stored in Google Drive (no size limit)</small>
+        </div>
+        <input type="file" id="kb-file-input" accept=".pdf,.txt,.md,.text" onchange="kbHandleFile(this.files[0])">
+      </div>
+
+      <!-- URL / LINK -->
+      <div id="kb-m-url" style="display:none">
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Paste a public sharing link to a file on OneDrive, Google Drive, or any direct URL. The server fetches and indexes the full text.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">
+          <div class="field" style="margin:0">
+            <label>Document Title</label>
+            <input type="text" id="kb-url-title" placeholder="e.g. IED150S Workbook 2026">
+          </div>
+          <div class="field" style="margin:0">
+            <label>Sharing URL</label>
+            <input type="text" id="kb-url-link" placeholder="https://1drv.ms/...">
+          </div>
+          <button class="btn-admin" onclick="kbFetchUrl()" style="height:38px">Fetch &amp; Index</button>
+        </div>
+        <p style="font-size:11.5px;color:var(--text3);margin-top:6px">⚠️ Link must be set to <strong>"Anyone with the link can view"</strong>.</p>
+      </div>
+
+      <!-- PASTE TEXT -->
+      <div id="kb-m-paste" style="display:none">
+        <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:8px">
+          <div class="field" style="flex:1;margin:0">
+            <label>Document Title</label>
+            <input type="text" id="kb-paste-title" placeholder="e.g. Tolerance Tables, Key Formulas…">
+          </div>
+          <button class="btn-admin" onclick="kbSavePaste()" style="height:38px">Add</button>
+        </div>
+        <textarea class="kb-paste-area" id="kb-paste-text" placeholder="Paste or type your notes, worked examples, tables, formulas…" style="height:120px"></textarea>
+      </div>
+
+      <!-- Topic tags -->
+      <div style="margin-top:14px;padding:12px 14px;background:var(--bg2);border-radius:9px;border:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">📌 Tag to topics — bot injects this doc only when student is on that topic</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px" id="kb-topic-tags"></div>
+      </div>
+
+      <!-- Progress -->
+      <div class="kb-progress" id="kb-progress" style="margin-top:12px"><div class="kb-progress-bar" id="kb-progress-bar"></div></div>
+      <div id="kb-status" style="font-size:13px;color:var(--text2);min-height:20px;margin-top:4px"></div>
+
+      <!-- Document list -->
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);flex:1">Indexed Documents</span>
+          <button class="btn-tool" onclick="renderKbList()" style="font-size:12px;padding:5px 11px">↻ Refresh list</button>
+        </div>
+        <div id="kb-list"><div class="kb-empty">No documents yet.</div></div>
+        <div class="kb-stats" id="kb-stats"></div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="overlay" onclick="maybeClose(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">Conversation</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+//  EDIT THIS LINE with your Google Apps Script URL
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzWk_O4fDNJJgFWAHZjrR0k0xaIJNd7r0b5r8soYJnVAVhlMRSAg5MdM7qenkDJJ3xB/exec';
+// ════════════════════════════════════════════
+
+const CODES = ['IED150S','ied150s','nyangal'];
+const LECT  = 'nyangal@cput.ac.za';
+let allData = {}, refreshTimer = null;
+
+async function apiGet(params) {
+  try {
+    const url = SCRIPT_URL + '?' + new URLSearchParams(params);
+    const res = await fetch(url, { redirect: 'follow', mode: 'cors' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    return JSON.parse(text);
+  } catch (e) {
+    console.error('apiGet error:', e.message);
+    return null;
+  }
+}
+
+function doLogin() {
+  const v = document.getElementById('code').value.trim();
+  if (CODES.includes(v)) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+    document.getElementById('h-badge').style.display = 'inline-block';
+    document.getElementById('logout-btn').style.display = 'inline-block';
+    // Load data after showing dashboard — don't block the UI
+    setTimeout(doRefresh, 0);
+    refreshTimer = setInterval(doRefresh, 60000);
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+function doLogout() {
+  if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('dash').style.display = 'none';
+  document.getElementById('h-badge').style.display = 'none';
+  document.getElementById('logout-btn').style.display = 'none';
+  document.getElementById('code').value = '';
+  document.getElementById('login-err').style.display = 'none';
+  allData = {};
+}
+
+async function doRefresh() {
+  try {
+    document.getElementById('tw').innerHTML = '<div class="loading">Fetching from Google Sheets…</div>';
+
+    if (SCRIPT_URL.includes('REPLACE_WITH')) {
+      document.getElementById('tw').innerHTML = `
+        <div class="no-data">
+          ⚠️ <strong>SCRIPT_URL not set.</strong><br><br>
+          Open <code>2_Dashboard.html</code> in a text editor, find this line near the top:<br><br>
+          <code style="background:#f4f6f8;padding:4px 8px;border-radius:5px;font-size:12px">const SCRIPT_URL = 'https://script.google.com/macros/s/REPLACE_WITH_YOUR_DEPLOYMENT_ID/exec';</code><br><br>
+          Replace <strong>REPLACE_WITH_YOUR_DEPLOYMENT_ID</strong> with your actual Google Apps Script deployment ID, then re-upload to GitHub.
+        </div>`;
+      return;
+    }
+
+    const result = await apiGet({ action: 'analytics' });
+    if (!result?.data) {
+      document.getElementById('tw').innerHTML = `
+        <div class="no-data">
+          ❌ <strong>Could not connect to Google Apps Script.</strong><br><br>
+          URL being used:<br>
+          <code style="font-size:11px;word-break:break-all;background:#f4f6f8;padding:4px 8px;border-radius:5px;display:block;margin:8px 0">${SCRIPT_URL}</code>
+          <strong>Checklist:</strong><br>
+          1. In Apps Script → <em>Deploy → Manage deployments</em> — confirm it shows <strong>Anyone</strong> under "Who has access"<br>
+          2. After any code change, create a <strong>New version</strong> and redeploy<br>
+          3. Make sure you clicked <strong>Authorise access</strong> during deployment<br>
+          4. Open the URL above directly in a new tab — you should see JSON, not an error page
+        </div>`;
+      return;
+    }
+
+    allData = {};
+    result.data.forEach(s => { if (s.studentNumber) allData[s.studentNumber] = s; });
+    updateCards(); updateCharts(); updateInsights(); renderTable();
+    document.getElementById('refresh-time').textContent = 'Updated ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+
+  } catch (err) {
+    console.error('doRefresh error:', err);
+    document.getElementById('tw').innerHTML = `<div class="no-data">⚠️ Error: ${err.message}</div>`;
+  }
+}
+
+function updateCards() {
+  const students = Object.values(allData);
+  const today = new Date().toDateString();
+  let msgs=0,pos=0,cur=0,flag=0,act=0;
+  students.forEach(s=>{msgs+=s.messageCount||0;pos+=s.sentiments?.positive||0;cur+=s.learningStates?.curious||0;if(s.flagged)flag++;if(s.lastMessage&&new Date(s.lastMessage).toDateString()===today)act++;});
+  document.getElementById('c-s').textContent=students.length;
+  document.getElementById('c-m').textContent=msgs;
+  document.getElementById('c-p').textContent=pos;
+  document.getElementById('c-cu').textContent=cur;
+  document.getElementById('c-f').textContent=flag;
+  document.getElementById('c-t').textContent=act;
+}
+
+let sci,lci;
+function updateCharts() {
+  const students = Object.values(allData);
+  const sent={positive:0,neutral:0,negative:0,inappropriate:0};
+  const learn={curious:0,neutral:0,confused:0,attention_needed:0};
+  students.forEach(s=>{Object.keys(sent).forEach(k=>{sent[k]+=s.sentiments?.[k]||0;});Object.keys(learn).forEach(k=>{learn[k]+=s.learningStates?.[k]||0;});});
+  const blue='#185FA5', opts={plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false}}},responsive:true};
+  if(sci)sci.destroy();
+  sci=new Chart(document.getElementById('sc').getContext('2d'),{type:'bar',data:{labels:['Positive','Neutral','Negative','Inappropriate'],datasets:[{data:Object.values(sent),backgroundColor:['#3b6d11','#9ca3af','#854f0b','#a32d2d'],borderRadius:5,borderSkipped:false}]},options:opts});
+  if(lci)lci.destroy();
+  lci=new Chart(document.getElementById('lc').getContext('2d'),{type:'bar',data:{labels:['Curious','Neutral','Confused','Needs Attn'],datasets:[{data:Object.values(learn),backgroundColor:[blue,'#9ca3af','#854f0b','#a32d2d'],borderRadius:5,borderSkipped:false}]},options:opts});
+}
+
+function updateInsights() {
+  const students = Object.values(allData);
+  const TOPIC_LABELS = {
+    engineering_drawing: 'Engineering Drawing',
+    concurrent_engineering: 'Concurrent Engineering',
+    autocad: 'AutoCAD',
+    solidworks: 'SolidWorks',
+    tecnomatix: 'Tecnomatix',
+    general: 'General'
+  };
+
+  // Aggregate per-topic stats across all students
+  const agg = {}; // { topicKey: { count, positive, neutral, negative, curious, confused, attention_needed } }
+
+  students.forEach(s => {
+    // Use topicDetails if available (new data), fall back to flat topics (old data)
+    if (s.topicDetails) {
+      Object.entries(s.topicDetails).forEach(([topic, td]) => {
+        if (!agg[topic]) agg[topic] = { count:0, positive:0, neutral:0, negative:0, inappropriate:0, curious:0, confused:0, attention_needed:0 };
+        agg[topic].count += td.count || 0;
+        Object.keys(td.sentiments || {}).forEach(k => { agg[topic][k] = (agg[topic][k]||0) + (td.sentiments[k]||0); });
+        Object.keys(td.learningStates || {}).forEach(k => { agg[topic][k] = (agg[topic][k]||0) + (td.learningStates[k]||0); });
+      });
+    } else if (s.topics) {
+      // Legacy fallback — only count data available
+      Object.entries(s.topics).forEach(([topic, count]) => {
+        if (!agg[topic]) agg[topic] = { count:0, positive:0, neutral:0, negative:0, inappropriate:0, curious:0, confused:0, attention_needed:0 };
+        agg[topic].count += count || 0;
+      });
+    }
+  });
+
+  const topics = Object.entries(agg).filter(([k]) => k !== 'general' || agg[k].count > 0);
+  if (!topics.length) return; // leave "No data yet" messages
+
+  const totalMsgs = topics.reduce((s, [, v]) => s + v.count, 0) || 1;
+  const maxCount  = Math.max(...topics.map(([, v]) => v.count), 1);
+
+  // ── MOST DISCUSSED ──
+  const byFreq = [...topics].sort((a, b) => b[1].count - a[1].count).slice(0, 6);
+  document.getElementById('ins-freq').innerHTML = byFreq.map(([key, v]) => {
+    const pct = Math.round((v.count / maxCount) * 100);
+    const label = TOPIC_LABELS[key] || key;
+    return `<div class="topic-row">
+      <span class="topic-name">${label}</span>
+      <div class="topic-bar-wrap"><div class="topic-bar-fill freq" style="width:${pct}%"></div></div>
+      <span class="topic-count">${v.count}</span>
+    </div>`;
+  }).join('');
+
+  // ── STRUGGLING ──
+  // Score = (confused + attention_needed) / count — min 2 messages to qualify
+  const struggleScores = topics
+    .filter(([, v]) => v.count >= 2)
+    .map(([key, v]) => {
+      const struggleRate = ((v.confused || 0) + (v.attention_needed || 0)) / v.count;
+      return { key, v, score: struggleRate };
+    })
+    .filter(t => t.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 6);
+
+  if (struggleScores.length) {
+    const maxS = Math.max(...struggleScores.map(t => t.score), 0.01);
+    document.getElementById('ins-struggle').innerHTML = struggleScores.map(({ key, v, score }) => {
+      const pct = Math.round((score / maxS) * 100);
+      const label = TOPIC_LABELS[key] || key;
+      const struggling = (v.confused||0) + (v.attention_needed||0);
+      return `<div class="topic-row">
+        <span class="topic-name">${label}</span>
+        <div class="topic-bar-wrap"><div class="topic-bar-fill struggle" style="width:${pct}%"></div></div>
+        <span class="topic-count">${Math.round(score*100)}%</span>
+      </div>`;
+    }).join('');
+  } else {
+    document.getElementById('ins-struggle').innerHTML = '<div class="insight-empty">No struggle signals yet</div>';
+  }
+
+  // ── GOOD COMPREHENSION ──
+  // Score = (positive + curious) / count — min 2 messages to qualify
+  const goodScores = topics
+    .filter(([, v]) => v.count >= 2)
+    .map(([key, v]) => {
+      const goodRate = ((v.positive || 0) + (v.curious || 0)) / v.count;
+      return { key, v, score: goodRate };
+    })
+    .filter(t => t.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 6);
+
+  if (goodScores.length) {
+    const maxG = Math.max(...goodScores.map(t => t.score), 0.01);
+    document.getElementById('ins-good').innerHTML = goodScores.map(({ key, v, score }) => {
+      const pct = Math.round((score / maxG) * 100);
+      const label = TOPIC_LABELS[key] || key;
+      return `<div class="topic-row">
+        <span class="topic-name">${label}</span>
+        <div class="topic-bar-wrap"><div class="topic-bar-fill good" style="width:${pct}%"></div></div>
+        <span class="topic-count">${Math.round(score*100)}%</span>
+      </div>`;
+    }).join('');
+  } else {
+    document.getElementById('ins-good').innerHTML = '<div class="insight-empty">Not enough data yet</div>';
+  }
+}
+
+function renderTable() {
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  const students=Object.values(allData).filter(s=>!q||s.name?.toLowerCase().includes(q)||s.studentNumber?.toLowerCase().includes(q));
+  const tw=document.getElementById('tw');
+  if(!students.length){tw.innerHTML='<div class="no-data">No student data yet.<br>Students must complete at least one chat in the Student Bot.</div>';return;}
+  const dom=obj=>Object.entries(obj||{}).sort((a,b)=>b[1]-a[1])[0]?.[0]||'neutral';
+  const sc={positive:'pos',neutral:'neu',negative:'neg',inappropriate:'inap'};
+  const lc={curious:'cur',neutral:'neu',confused:'conf',attention_needed:'attn'};
+  const fmt=iso=>iso?new Date(iso).toLocaleDateString('en-ZA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+  const top=s=>{const e=Object.entries(s.topics||{}).sort((a,b)=>b[1]-a[1])[0];return e?e[0].replace(/_/g,' '):'—';};
+  let html='<table><thead><tr><th>Student</th><th>Msgs</th><th>Sentiment</th><th>Learning</th><th>Top Topic</th><th>Last Active</th><th></th></tr></thead><tbody>';
+  students.sort((a,b)=>(b.lastMessage||'').localeCompare(a.lastMessage||'')).forEach(s=>{
+    const ds=dom(s.sentiments),dl=dom(s.learningStates);
+    const subj=encodeURIComponent('[IED150S Alert] '+s.name+' — '+s.studentNumber);
+    const body=encodeURIComponent('Student: '+s.name+'\nNumber: '+s.studentNumber+'\nFlags: '+(s.flaggedReasons||[]).join('; ')+'\nMsgs: '+s.messageCount+'\nLast: '+fmt(s.lastMessage));
+    html+=`<tr>
+      <td><strong>${esc(s.name||'')}</strong><br><span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">${esc(s.studentNumber||'')}</span>${s.flagged?'&nbsp;<span class="pill flag">⚠ Flagged</span>':''}</td>
+      <td><strong>${s.messageCount||0}</strong></td>
+      <td><span class="pill ${sc[ds]||'neu'}">${ds.replace(/_/g,' ')}</span></td>
+      <td><span class="pill ${lc[dl]||'neu'}">${dl.replace(/_/g,' ')}</span></td>
+      <td style="font-size:12px">${top(s)}</td>
+      <td style="font-size:11.5px;color:var(--text3)">${fmt(s.lastMessage)}</td>
+      <td style="white-space:nowrap;display:flex;gap:5px;align-items:center">
+        <button class="btn-v" onclick="viewChat('${esc(s.studentNumber)}','${esc(s.name)}')">View</button>
+        ${s.flagged?`<a class="btn-e" href="mailto:nyangal@cput.ac.za?subject=${subj}&body=${body}">Email</a>`:''}
+      </td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  tw.innerHTML=html;
+}
+
+// ── TRANSLATION ──
+// Uses MyMemory free API — no key needed, 90+ languages supported
+let translationCache = {};
+
+async function translateText(text, fromLang) {
+  const key = fromLang + '|' + text.slice(0, 80);
+  if (translationCache[key]) return translationCache[key];
+  try {
+    const langPair = (fromLang && fromLang !== 'en') ? `${fromLang}|en` : 'auto|en';
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.slice(0, 500))}&langpair=${langPair}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const result = data.responseData?.translatedText || null;
+    if (result) translationCache[key] = result;
+    return result;
+  } catch { return null; }
+}
+
+async function translateAllPending() {
+  const pending = document.querySelectorAll('.cm-translation[data-translated="0"]');
+  // Translate in parallel, max 4 at a time to avoid rate limits
+  const chunks = [];
+  for (let i = 0; i < pending.length; i += 4) chunks.push([...pending].slice(i, i + 4));
+  for (const chunk of chunks) {
+    await Promise.all(chunk.map(async panel => {
+      const contentDiv = panel.querySelector('.tr-content');
+      const result = await translateText(panel.dataset.text, panel.dataset.lang);
+      contentDiv.textContent = result || '(Translation unavailable)';
+      panel.dataset.translated = '1';
+    }));
+  }
+}
+
+async function viewChat(sn, name) {
+  translationCache = {};
+  const body = document.getElementById('modal-body');
+  document.getElementById('modal-title').textContent = name + ' (' + sn + ')';
+  body.innerHTML = '<p style="color:var(--text3);text-align:center;padding:20px">Loading…</p>';
+  document.getElementById('overlay').classList.add('open');
+
+  const result = await apiGet({ action: 'chat', sn });
+  const msgs = result?.messages || [];
+
+  if (!msgs.length) {
+    body.innerHTML = '<p style="color:var(--text3);font-size:13.5px;text-align:center;padding:20px">No messages recorded yet.</p>';
+    return;
+  }
+
+  const stc = { positive:'#3b6d11', neutral:'#5f5e5a', negative:'#854f0b', inappropriate:'#a32d2d' };
+  const langNames = {
+    xh:'isiXhosa', zu:'isiZulu', af:'Afrikaans', st:'Sesotho', tn:'Setswana',
+    ts:'Xitsonga', ve:'Tshivenda', ss:'siSwati', nr:'isiNdebele', nso:'Sepedi',
+    fr:'French', pt:'Portuguese', ar:'Arabic', zh:'Chinese', hi:'Hindi',
+    es:'Spanish', de:'German', sw:'Swahili', yo:'Yoruba', ha:'Hausa'
+  };
+
+  // Build a language map: for each message index, what language was used?
+  // Bot responses have m.language; user messages take the language of the NEXT bot response.
+  const langMap = {};
+  for (let i = 0; i < msgs.length; i++) {
+    if (msgs[i].role === 'assistant' && msgs[i].language) {
+      langMap[i] = msgs[i].language;       // bot's own language
+      if (i > 0 && msgs[i-1].role === 'user') {
+        langMap[i-1] = msgs[i].language;   // infer user message language from bot response
+      }
+    }
+  }
+
+  let hasNonEnglish = false;
+
+  body.innerHTML = msgs.map((m, i) => {
+    const u = m.role === 'user';
+    const lang = langMap[i] || m.language || 'en';
+    const isNonEn = lang !== 'en';
+    if (isNonEn) hasNonEnglish = true;
+
+    const langName = langNames[lang] || lang.toUpperCase();
+    const langBadge = isNonEn
+      ? `<span style="background:#f0e6fb;color:#6b21a8;padding:1px 6px;border-radius:99px;font-size:10px;font-weight:600;margin-left:5px">🌐 ${langName}</span>`
+      : '';
+
+    // Sentiment/learning meta — only on bot messages
+    const meta = !u && m.sentiment
+      ? `<div class="cm-meta" style="color:${stc[m.sentiment]||'#5f5e5a'}">${m.sentiment||''} · ${(m.learningState||'').replace(/_/g,' ')}${m.topic?' · '+m.topic.replace(/_/g,' '):''}${langBadge}</div>`
+      : (isNonEn && u ? `<div class="cm-meta">${langBadge}</div>` : '');
+
+    // Translation panel — visible immediately for non-English messages
+    const trPanel = isNonEn
+      ? `<div class="cm-translation" data-text="${esc(m.content||'')}" data-lang="${lang}" data-translated="0">
+           <div class="tr-label">🇬🇧 English translation</div>
+           <div class="tr-content"><span class="tr-spinner"></span></div>
+         </div>`
+      : '';
+
+    return `<div class="cm ${u?'user':'bot'}">${esc(m.content||'')}${meta}${trPanel}</div>`;
+  }).join('');
+
+  // Start translating all panels immediately — no button needed
+  if (hasNonEnglish) {
+    translateAllPending(); // fire and forget — panels update in place
+  }
+}
+
+function closeModal(){document.getElementById('overlay').classList.remove('open');}
+function maybeClose(e){if(e.target.id==='overlay')closeModal();}
+function esc(s){return(s+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ═══════════════════════════════════
+//  ADMIN — Student Registry
+// ═══════════════════════════════════
+
+// BASE_REGISTRY is embedded in the Student Bot (index.html).
+// The dashboard stores OVERRIDES here and syncs them to Google Sheets
+// so the Student Bot can fetch the merged registry on load.
+
+const LS_OVERRIDES_KEY = 'ied150s_registry_overrides';
+
+function getOverrides() {
+  try { return JSON.parse(localStorage.getItem(LS_OVERRIDES_KEY)) || {}; } catch { return {}; }
+}
+function saveOverrides(obj) {
+  localStorage.setItem(LS_OVERRIDES_KEY, JSON.stringify(obj));
+}
+
+function toggleAdmin() {
+  const body = document.getElementById('admin-body');
+  const btn  = document.getElementById('admin-toggle-btn');
+  const open = body.classList.toggle('open');
+  btn.textContent = open ? '▲ Hide' : '▼ Show';
+  if (open) renderAdminList();
+}
+
+function toggleKbSection() {
+  const body = document.getElementById('kb-section-body');
+  const btn  = document.getElementById('kb-section-btn');
+  const open = body.classList.toggle('open');
+  btn.textContent = open ? '▲ Hide' : '▼ Show';
+  if (open) { renderKbList(); kbRenderTopicTags([]); }
+}
+
+function switchAdminTab(tab, el) {
+  document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('atab-' + tab).classList.add('active');
+  if (tab === 'manage') renderAdminList();
+}
+
+function showAdminMsg(msg, type) {
+  const el = document.getElementById('admin-msg');
+  el.textContent = msg; el.className = 'admin-msg ' + type; el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+async function adminSave() {
+  const sn     = document.getElementById('adm-sn').value.trim();
+  const name   = document.getElementById('adm-name').value.trim().toUpperCase();
+  const status = document.getElementById('adm-status').value;
+  if (!sn)   { showAdminMsg('Please enter a student number.', 'err'); return; }
+  if (!name) { showAdminMsg('Please enter a name.', 'err'); return; }
+
+  const overrides = getOverrides();
+  overrides[sn] = { name, status };
+  saveOverrides(overrides);
+
+  // Sync override to Google Sheets so Student Bot can read it
+  const res = await apiPost({ action: 'saveRegistryOverride', studentNumber: sn, entry: { name, status } });
+
+  document.getElementById('adm-sn').value = '';
+  document.getElementById('adm-name').value = '';
+  document.getElementById('adm-status').value = 'Registered';
+  showAdminMsg(`✓ ${name} (${sn}) saved as ${status}.`, 'ok');
+  renderAdminList();
+}
+
+function adminEdit(sn) {
+  // Pre-fill the Add form
+  const overrides = getOverrides();
+  const entry = overrides[sn] || BASE_REGISTRY_DASH[sn] || {};
+  document.getElementById('adm-sn').value = sn;
+  document.getElementById('adm-name').value = entry.name || '';
+  document.getElementById('adm-status').value = entry.status || 'Registered';
+  switchAdminTab('add', document.querySelector('.admin-tab'));
+}
+
+async function adminRemove(sn) {
+  if (!confirm(`Remove student ${sn} from the registry? They will no longer be able to access the Student Bot.`)) return;
+  const overrides = getOverrides();
+  // Mark as Not Registered (keeps a record rather than deleting)
+  const existing = overrides[sn] || BASE_REGISTRY_DASH[sn] || {};
+  overrides[sn] = { name: existing.name || sn, status: 'Not Registered' };
+  saveOverrides(overrides);
+  await apiPost({ action: 'saveRegistryOverride', studentNumber: sn, entry: overrides[sn] });
+  showAdminMsg(`Student ${sn} set to Not Registered.`, 'ok');
+  renderAdminList();
+}
+
+// Merged view of base registry + overrides for the admin list
+// (Base registry is replicated here for dashboard-side lookup)
+const BASE_REGISTRY_DASH = {
+  "251337723":"BALOYI H","261592351":"BALOYI M","261407856":"BANGO L","250291975":"BEKE OB",
+  "260284297":"BEZUIDENHOUT LA","260351156":"BILA JT","261269968":"BUTHELEZI S","260276707":"BUTHELEZI T",
+  "241047226":"CENGIMBO A","260412236":"CHAUKE PM","260474525":"CHICUANDE A","260152951":"DLUNGWANA EM",
+  "250791080":"DYOKOSE UD","251448088":"EZISSI GE","251042251":"FAKUDE RZ","220532273":"FIHLA ESF",
+  "260187135":"FIKI I","250505657":"FUNDA A","250759217":"GQAMLANA P","260264857":"HANISI L",
+  "250620170":"HANKEY S","260176915":"HLAGALA TH","260793043":"HLOPHE S","260351407":"HLOPHE ST",
+  "240102037":"JAKO S","260135771":"JELE SNP","261169963":"KEORAPETSE G","260144363":"KGATLA MMT",
+  "251645207":"KHUMALO LF","240172663":"KHUMALO VA","260688886":"KLAAS OB","261233289":"KUBHEKA SS",
+  "250849194":"LEKGOTHOANA T","241181119":"LEKHASE B","260267120":"LETSWALO NP","250889587":"MABASO UC",
+  "261544772":"MABOYO ST","260034770":"MABUNDA MS","250370913":"MADONSELA SB","261182684":"MAGAGULA AMM",
+  "260101028":"MAKAMU WV","250131595":"MAKELENI MY","240402103":"MAKHUBELA TV","241065208":"MAKWETU S",
+  "250172429":"MALULEKE FG","260409782":"MASEKO AM","260091731":"MASIMA LH","260027391":"MATSIMELA T",
+  "261285319":"MAYISELA MS","240769473":"MAZIBUKO A","260702285":"MAZIBUKO NN","261454889":"MAZITSHANA O",
+  "261366971":"MDLULI MM","260594288":"MGETYENGANA B","260046000":"MGIBA M","250040069":"MKHWENKWE S",
+  "260577790":"MKOKELI T","260283592":"MLAMBISA L","261780581":"MOGAKWE LMJ","260914509":"MOHLALA PN",
+  "261674080":"MOKHARI AL","261417266":"MOKWELE GT","250776308":"MOKWELE TM","261154982":"MOREMI TE",
+  "260149454":"MOSHOLE KA","261240978":"MOTEME ND","260877751":"MOTLOUNG VI","222098023":"MPHAHELE B",
+  "250091054":"MPHIKWA S","261766082":"MPHUTHI T","260273279":"MQADI SS","260454591":"MTAMBO SS",
+  "251227952":"MTHIMUNYE SZ","260305359":"NCAYO O","260258113":"NCAYO SN","250807408":"NCOYINI L",
+  "260648167":"NDLOVU S","260919969":"NETHOMBONI M","260331481":"NGESI I","260145262":"NGOBESE NO",
+  "260038954":"NGOMANE RA","240369882":"NGQOKOMOSHE TA","230145132":"NKOMO AS","261377914":"NKOSI S",
+  "261554832":"NKOSI ZP","250768097":"NOKALELA O","260270008":"NYEMBANA A","260968358":"NZUZO AN",
+  "260140279":"PHAKATHI TA","261770489":"PHIRI KG","251183610":"POTWANA A","260025526":"RAMAVHUYA TV",
+  "260420875":"RATSHIHULE V","251675661":"SAMBO LS","260886211":"SAMBO SE","240908678":"SAMPSON DAS",
+  "240385845":"SELOWA PG","260132195":"SEMONYO BN","260015873":"SETLALE NB","251301826":"SHABANGGU TS",
+  "221768114":"SHODRESS FG","250080761":"SIBIYA SS","241102545":"SIBUYI LL","251444430":"SITHOLE KW",
+  "241220475":"SITHOLE MP","240046749":"SIZATHU A","219167265":"SKOSANA NT","260046523":"SONELA CS",
+  "260697052":"SUKAZE K","261255002":"SUMMERS N","260815225":"SUNDAY TE","251548171":"TAELE L",
+  "260203076":"THENGELA NL","251673545":"TIDA A","260130524":"TSHIDINO M","261616595":"VELEMANI A",
+  "261302876":"WILLIAMS JJ","260045993":"ZEMBE T","250495260":"ZUMA LL","30097049":"LULU L"
+};
+
+const NOT_REG_ORIGINAL = new Set([
+  "261407856","261269968","260276707","260176915","261182684","240402103",
+  "261285319","240769473","261366971","260877751","260648167","260038954",
+  "261770489","260015873","251444430","219167265","251673545"
+]);
+
+function getMergedRegistry() {
+  const overrides = getOverrides();
+  const merged = {};
+  // Start with base
+  Object.entries(BASE_REGISTRY_DASH).forEach(([sn, name]) => {
+    merged[sn] = {
+      name: typeof name === 'string' ? name : name.name,
+      status: NOT_REG_ORIGINAL.has(sn) ? 'Not Registered' : 'Registered'
+    };
+  });
+  // Apply overrides
+  Object.entries(overrides).forEach(([sn, entry]) => {
+    merged[sn] = entry;
+  });
+  return merged;
+}
+
+function renderAdminList() {
+  const q = (document.getElementById('admin-search')?.value || '').toLowerCase();
+  const merged = getMergedRegistry();
+  const entries = Object.entries(merged)
+    .filter(([sn, e]) => !q || sn.includes(q) || e.name?.toLowerCase().includes(q))
+    .sort((a, b) => a[1].name?.localeCompare(b[1].name) || 0);
+
+  const isOverride = sn => !!getOverrides()[sn];
+
+  document.getElementById('admin-list').innerHTML = `
+    <table>
+      <thead><tr><th>Student Number</th><th>Name</th><th>Status</th><th>Source</th><th></th></tr></thead>
+      <tbody>
+        ${entries.map(([sn, e]) => `
+          <tr>
+            <td style="font-family:'DM Mono',monospace;font-size:12px">${esc(sn)}</td>
+            <td><strong>${esc(e.name||'')}</strong></td>
+            <td><span class="pill ${e.status==='Registered'?'reg':'not-reg'}">${esc(e.status||'')}</span></td>
+            <td style="font-size:11px;color:var(--text3)">${isOverride(sn) ? '✏️ Admin edit' : '📄 Class list'}</td>
+            <td style="white-space:nowrap;display:flex;gap:5px">
+              <button class="btn-admin secondary" style="height:30px;padding:0 10px;font-size:11.5px" onclick="adminEdit('${esc(sn)}')">Edit</button>
+              <button class="btn-admin danger" style="height:30px;padding:0 10px;font-size:11.5px" onclick="adminRemove('${esc(sn)}')">Remove</button>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+// ═══════════════════════════════════════
+//  KNOWLEDGE BASE  (Google Drive storage)
+//
+//  ARCHITECTURE:
+//  • 250 MB OneDrive folder  → stored as a link, shown to students as a "📂 Resources" button
+//  • Key notes / excerpts    → uploaded here (PDF/TXT/paste), stored in Google Drive
+//    These are topic-tagged and injected per conversation (~80 KB per topic max)
+// ═══════════════════════════════════════
+const KB_LS_KEY    = 'ied150s_kb_docs';
+const KB_CHUNK     = 80000;   // chars per upload chunk
+const KB_MAX_DOCS  = 100;     // max indexed documents
+const KB_BOT_CTX   = 80000;   // chars per topic injected into bot (80 KB)
+const KB_OD_KEY    = 'ied150s_kb_onedrive'; // localStorage key for folder link
+
+const KB_TOPICS = [
+  { id:'engineering_drawing',     label:'📐 Drawing' },
+  { id:'orthographic_projection',  label:'🔭 Orthographic' },
+  { id:'tolerances',              label:'🎯 Tolerances' },
+  { id:'metrology',               label:'📏 Metrology' },
+  { id:'shafts_keys',             label:'🔑 Shafts' },
+  { id:'fasteners',               label:'🔩 Fasteners' },
+  { id:'gears',                   label:'⚙️ Gears' },
+  { id:'autocad',                 label:'💻 AutoCAD' },
+  { id:'solidworks',              label:'🧊 SolidWorks' },
+  { id:'concurrent_engineering',  label:'🔄 Concurrent' },
+  { id:'assessments',             label:'📅 Assessments' },
+  { id:'general',                 label:'🌐 General' }
+];
+
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+function kbGetDocs(){ try{return JSON.parse(localStorage.getItem(KB_LS_KEY))||[];}catch{return[];} }
+function kbSaveDocs(d){ localStorage.setItem(KB_LS_KEY,JSON.stringify(d)); }
+function kbStatus(msg){ const el=document.getElementById('kb-status'); if(el) el.textContent=msg; }
+
+// ── OneDrive folder link ──
+function kbGetOneDriveLink(){ return localStorage.getItem(KB_OD_KEY)||''; }
+
+async function kbSaveOneDriveLink(){
+  const url = document.getElementById('kb-onedrive-url').value.trim();
+  if(url && !url.startsWith('http')){ showAdminMsg('Please enter a valid URL starting with https://','err'); return; }
+  localStorage.setItem(KB_OD_KEY, url);
+  // Sync to Google Sheets so the student bot can read it
+  const r = await apiPost({ action:'saveOneDriveLink', url });
+  showAdminMsg(url ? '✓ Folder link saved. Students will see a "📂 View full resources" button in the chat.' : '✓ Folder link cleared.','ok');
+}
+
+// Populate OneDrive link field when KB tab opens
+function kbInitOneDriveField(){
+  const el = document.getElementById('kb-onedrive-url');
+  if(el) el.value = kbGetOneDriveLink();
+}
+
+// ── Topic tag checkboxes ──
+function kbRenderTopicTags(selectedTopics){
+  const container = document.getElementById('kb-topic-tags');
+  if(!container) return;
+  container.innerHTML = KB_TOPICS.map(t=>`
+    <label style="display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:7px;border:1.5px solid var(--border);cursor:pointer;font-size:12px;white-space:nowrap;background:var(--bg);user-select:none">
+      <input type="checkbox" value="${t.id}" style="accent-color:#185FA5" ${(selectedTopics||[]).includes(t.id)?'checked':''}>
+      ${t.label}
+    </label>`).join('');
+}
+
+function kbGetSelectedTopics(){
+  return [...document.querySelectorAll('#kb-topic-tags input:checked')].map(el=>el.value);
+}
+
+function kbSetMethod(method, btn) {
+  document.querySelectorAll('.kb-mtab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['file','url','paste'].forEach(m => {
+    const el = document.getElementById('kb-m-'+m);
+    if(el) el.style.display = m===method ? '' : 'none';
+  });
+}
+
+function kbHandleDrop(event){
+  event.preventDefault();
+  document.getElementById('kb-drop').classList.remove('drag-over');
+  const f=event.dataTransfer.files[0];
+  if(f)kbHandleFile(f);
+}
+
+async function kbHandleFile(file){
+  if(!file)return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(!['pdf','txt','md','text'].includes(ext)){
+    showAdminMsg('Please use PDF, TXT, or MD files.','err'); return;
+  }
+  kbStatus('Reading file…');
+  setKbProgress(5);
+  let text='';
+  try{
+    text = ext==='pdf' ? await kbReadPdf(file) : await kbReadText(file);
+  } catch(e){
+    showAdminMsg('Could not read file: '+e.message,'err');
+    setKbProgress(0,true); kbStatus(''); return;
+  }
+  text = text.trim();
+  if(!text){ showAdminMsg('File appears empty or unreadable.','err'); setKbProgress(0,true); kbStatus(''); return; }
+  kbStatus(`Uploading ${(text.length/1000).toFixed(0)} KB in chunks…`);
+  await kbUploadLarge(file.name, text, ext);
+  document.getElementById('kb-file-input').value='';
+}
+
+// ── Upload large text in chunks to Apps Script → Google Drive ──
+async function kbUploadLarge(name, text, ext) {
+  const id     = Date.now().toString();
+  const topics = kbGetSelectedTopics();
+
+  // Cap at 50 KB — enough for detailed reference notes per topic
+  const capped = text.slice(0, 50000);
+
+  setKbProgress(40);
+  kbStatus('Saving to Knowledge Base…');
+
+  const r = await apiPost({
+    action: 'saveKbDoc',
+    doc: { id, name, ext, text: capped, size: capped.length, active: true, topics, addedAt: new Date().toISOString() }
+  });
+
+  if (!r?.success) {
+    showAdminMsg('Save failed: ' + (r?.error || 'Could not reach Google Apps Script. Check SCRIPT_URL.'), 'err');
+    setKbProgress(0, true);
+    kbStatus('');
+    return;
+  }
+
+  // Save metadata locally
+  const docs = kbGetDocs();
+  if (docs.length >= KB_MAX_DOCS) { showAdminMsg(`Max ${KB_MAX_DOCS} documents reached.`, 'err'); setKbProgress(0, true); kbStatus(''); return; }
+  docs.unshift({ id, name, ext, size: capped.length, active: true, topics, addedAt: new Date().toISOString() });
+  kbSaveDocs(docs);
+
+  setKbProgress(100);
+  kbStatus('');
+  setTimeout(() => setKbProgress(0, true), 600);
+  showAdminMsg(`✓ "${name}" (${(capped.length / 1000).toFixed(0)} KB) added to Knowledge Base.`, 'ok');
+  renderKbList();
+}
+
+// ── Fetch from OneDrive / any public URL via Apps Script ──
+async function kbFetchUrl(){
+  const title = document.getElementById('kb-url-title').value.trim();
+  const url   = document.getElementById('kb-url-link').value.trim();
+  if(!title){ showAdminMsg('Please enter a title for this document.','err'); return; }
+  if(!url || !url.startsWith('http')){ showAdminMsg('Please enter a valid URL starting with https://','err'); return; }
+
+  kbStatus('Fetching from URL via server (this may take a moment for large files)…');
+  setKbProgress(20);
+
+  const r = await apiPost({ action:'fetchKbUrl', id:Date.now().toString(), name:title, url });
+  setKbProgress(90);
+
+  if(!r?.success){
+    showAdminMsg('Failed to fetch URL: '+(r?.error||'Make sure the link is publicly accessible.'),'err');
+    setKbProgress(0,true); kbStatus(''); return;
+  }
+
+  const docs = kbGetDocs();
+  if(docs.length>=KB_MAX_DOCS){ showAdminMsg(`Max ${KB_MAX_DOCS} documents reached.`,'err'); setKbProgress(0,true); kbStatus(''); return; }
+  const topics = kbGetSelectedTopics();
+  const doc = { id:r.id, name:title, ext:r.ext||'url', size:r.size||0, active:true, topics, addedAt:new Date().toISOString(), driveStored:true, sourceUrl:url };
+  docs.unshift(doc);
+  kbSaveDocs(docs);
+
+  setKbProgress(100);
+  kbStatus('');
+  setTimeout(()=>setKbProgress(0,true), 800);
+  document.getElementById('kb-url-title').value='';
+  document.getElementById('kb-url-link').value='';
+  showAdminMsg(`✓ "${title}" (${(r.size/1000).toFixed(0)} KB) indexed from URL.`,'ok');
+  renderKbList();
+}
+
+// ── Read plain text file ──
+function kbReadText(file){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=e=>resolve(e.target.result);
+    r.onerror=()=>reject(new Error('File read failed'));
+    r.readAsText(file);
+  });
+}
+
+// ── Read PDF using PDF.js ──
+async function kbReadPdf(file){
+  if(typeof pdfjsLib==='undefined') throw new Error('PDF.js not loaded yet — try again in a moment');
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let out='';
+  for(let i=1;i<=pdf.numPages;i++){
+    const page=await pdf.getPage(i);
+    const content=await page.getTextContent();
+    out+=content.items.map(it=>it.str).join(' ')+'\n\n';
+    // Update progress during extraction
+    if(i%10===0) setKbProgress(5+Math.round((i/pdf.numPages)*30));
+  }
+  return out;
+}
+
+// ── Paste text ──
+async function kbSavePaste(){
+  const title=document.getElementById('kb-paste-title').value.trim();
+  const text=document.getElementById('kb-paste-text').value.trim();
+  if(!title){showAdminMsg('Please enter a title.','err');return;}
+  if(!text){showAdminMsg('Please enter some content.','err');return;}
+  kbStatus('Saving…');
+  await kbUploadLarge(title, text, 'txt');
+  document.getElementById('kb-paste-title').value='';
+  document.getElementById('kb-paste-text').value='';
+}
+
+function setKbProgress(pct,hide=false){
+  const bar=document.getElementById('kb-progress-bar');
+  const wrap=document.getElementById('kb-progress');
+  if(!bar||!wrap)return;
+  if(hide){wrap.style.display='none';bar.style.width='0%';return;}
+  wrap.style.display='block';bar.style.width=pct+'%';
+}
+
+// ── Toggle active/inactive ──
+async function kbToggle(id){
+  const docs=kbGetDocs();
+  const doc=docs.find(d=>d.id===id);
+  if(!doc)return;
+  doc.active=!doc.active;
+  kbSaveDocs(docs);
+  // Notify Apps Script
+  await apiPost({action:'toggleKbDoc', id, active:doc.active});
+  renderKbList();
+}
+
+// ── Delete document ──
+async function kbDelete(id){
+  if(!confirm('Delete this document from the Knowledge Base? It will also be removed from Google Drive.'))return;
+  const docs=kbGetDocs().filter(d=>d.id!==id);
+  kbSaveDocs(docs);
+  await apiPost({action:'deleteKbDoc', id});
+  showAdminMsg('Document deleted.','ok');
+  renderKbList();
+}
+
+// ── Render document list ──
+function renderKbList(){
+  const docs=kbGetDocs();
+  const container=document.getElementById('kb-list');
+  const stats=document.getElementById('kb-stats');
+  if(!docs.length){
+    container.innerHTML='<div class="kb-empty">No documents yet. Upload a file, add a link, or paste text above.</div>';
+    stats.textContent='';return;
+  }
+  const icons={pdf:'📕',txt:'📄',md:'📝',url:'🔗',text:'📄'};
+  const fmt=iso=>iso?new Date(iso).toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}):'';
+  const fmtSz=n=>n>1000000?(n/1000000).toFixed(1)+' MB':n>1000?(n/1000).toFixed(0)+' KB':n+' B';
+  container.innerHTML='<div class="kb-list">'+docs.map(doc=>`
+    <div class="kb-item">
+      <span class="kb-item-icon">${icons[doc.ext]||'📄'}</span>
+      <div class="kb-item-body">
+        <div class="kb-item-name" title="${esc(doc.name)}">${esc(doc.name)}</div>
+        <div class="kb-item-meta">${fmtSz(doc.size)} · ${doc.driveStored?'📁 Drive':'💾 Local'} · Added ${fmt(doc.addedAt)}${doc.sourceUrl?` · <a href="${esc(doc.sourceUrl)}" target="_blank" style="color:var(--blue)">Source ↗</a>`:''}</div>
+      </div>
+      <div class="kb-item-actions">
+        <button class="kb-toggle ${doc.active?'active':'inactive'}" onclick="kbToggle('${doc.id}')">${doc.active?'✓ Active':'○ Inactive'}</button>
+        <button class="kb-del" onclick="kbDelete('${doc.id}')" title="Delete">🗑</button>
+      </div>
+    </div>`).join('')+'</div>';
+  const active=docs.filter(d=>d.active);
+  const totalSize=active.reduce((s,d)=>s+d.size,0);
+  stats.textContent=`${active.length} of ${docs.length} documents active · ${(Math.min(totalSize,active.length*KB_BOT_CTX)/1000).toFixed(0)} KB context injected per conversation (capped at 25 KB/doc)`;
+}
+
+// ── Render document list ──
+function renderKbList(){
+  const docs=kbGetDocs();
+  const container=document.getElementById('kb-list');
+  const stats=document.getElementById('kb-stats');
+  const badge=document.getElementById('kb-doc-count');
+  kbRenderTopicTags([]); // reset tag checkboxes
+  kbInitOneDriveField();
+
+  // Update header badge
+  if(badge){
+    const active=docs.filter(d=>d.active).length;
+    badge.textContent = docs.length===0 ? '0 docs' : `${active} active · ${docs.length} total`;
+  }
+
+  if(!docs.length){
+    container.innerHTML='<div class="kb-empty">No documents yet. Upload a file, add a link, or paste text above.</div>';
+    if(stats) stats.textContent='';
+    return;
+  }
+  const icons={pdf:'📕',txt:'📄',md:'📝',url:'🔗',text:'📄'};
+  const fmt=iso=>iso?new Date(iso).toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}):'';
+  const fmtSz=n=>n>1000000?(n/1000000).toFixed(1)+' MB':n>1000?(n/1000).toFixed(0)+' KB':n+' B';
+  const topicLabel=id=>KB_TOPICS.find(t=>t.id===id)?.label||id;
+  container.innerHTML='<div class="kb-list">'+docs.map(doc=>`
+    <div class="kb-item">
+      <span class="kb-item-icon">${icons[doc.ext]||'📄'}</span>
+      <div class="kb-item-body">
+        <div class="kb-item-name" title="${esc(doc.name)}">${esc(doc.name)}</div>
+        <div class="kb-item-meta">${fmtSz(doc.size)} · ${doc.driveStored?'📁 Drive':'💾 Local'} · Added ${fmt(doc.addedAt)}${doc.sourceUrl?` · <a href="${esc(doc.sourceUrl)}" target="_blank" style="color:var(--blue)">Source ↗</a>`:''}</div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">
+          ${(doc.topics||[]).map(t=>`<span style="background:var(--blue-light);color:#185FA5;padding:1px 7px;border-radius:99px;font-size:10.5px;font-weight:600">${topicLabel(t)}</span>`).join('')}
+          ${!(doc.topics||[]).length?'<span style="color:var(--text3);font-size:11px">No topics tagged — shown for all topics</span>':''}
+        </div>
+      </div>
+      <div class="kb-item-actions">
+        <button class="kb-toggle ${doc.active?'active':'inactive'}" onclick="kbToggle('${doc.id}')">${doc.active?'✓ Active':'○ Inactive'}</button>
+        <button class="kb-del" onclick="kbDelete('${doc.id}')" title="Delete">🗑</button>
+      </div>
+    </div>`).join('')+'</div>';
+  const active=docs.filter(d=>d.active);
+  const totalSize=active.reduce((s,d)=>s+d.size,0);
+  const odLink = kbGetOneDriveLink();
+  stats.innerHTML=`${active.length} of ${docs.length} documents active · ${(Math.min(totalSize,active.length*KB_BOT_CTX)/1000).toFixed(0)} KB context per conversation (80 KB/topic max)${odLink?` · <a href="${esc(odLink)}" target="_blank" style="color:var(--blue)">📁 View OneDrive folder ↗</a>`:''}`;
+}
+
+// patch switchAdminTab to render KB list on open
+function switchAdminTab(tab,el){
+  document.querySelectorAll('.admin-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('atab-'+tab).classList.add('active');
+  if(tab==='manage')renderAdminList();
+  if(tab==='kb'){ renderKbList(); kbRenderTopicTags([]); }
+}
+
+function exportCSV(){
+  if(!students.length){alert('No data to export.');return;}
+  const rows=[['Name','Student Number','Messages','Positive','Neutral','Negative','Inappropriate','Curious','Neutral_L','Confused','Needs Attention','Top Topic','Flagged','Flag Reasons','Registered','Last Active']];
+  students.forEach(s=>{
+    const t=Object.entries(s.topics||{}).sort((a,b)=>b[1]-a[1])[0]?.[0]||'';
+    rows.push([s.name||'',s.studentNumber||'',s.messageCount||0,s.sentiments?.positive||0,s.sentiments?.neutral||0,s.sentiments?.negative||0,s.sentiments?.inappropriate||0,s.learningStates?.curious||0,s.learningStates?.neutral||0,s.learningStates?.confused||0,s.learningStates?.attention_needed||0,t,s.flagged?'Yes':'No',(s.flaggedReasons||[]).join('; '),s.registeredAt||'',s.lastMessage||'']);
+  });
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='IED150S_analytics_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
